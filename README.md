@@ -114,9 +114,10 @@ install step enables it: no manual profile wiring.
 ### Command line
 
 ```sh
-dsh plugin add armazi-hud                             # from npm (published)
+npm install armazi-hud                                # one-step install, from npm (published)
+dsh plugin add armazi-hud                             # DSH-native equivalent (same package)
 dsh plugin add https://github.com/Caqtus/armazi-hud   # from GitHub
-dsh plugin add /path/to/armazi-hud-0.1.1.tgz          # local tarball
+dsh plugin add /path/to/armazi-hud-0.1.2.tgz          # local tarball
 ```
 
 Any of these installs and selects the bundle in one step; reload the GUI

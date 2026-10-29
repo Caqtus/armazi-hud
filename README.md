@@ -38,6 +38,23 @@ of the work reads in a single glance:
 
 ![Collapsed HUD strip with per-activity colors](./screenshots/strip-colored.png)
 
+### One active, the rest gray
+
+When one state is running, it keeps its color — the active chip stays lit
+green while every other chip drops to gray, so the strip tells you exactly
+where the session's attention is right now:
+
+![HUD with the active chip lit and all other chips dimmed gray](./screenshots/active-green.png)
+
+### Fresh session, fresh numbers
+
+A brand-new session starts with nothing to show yet: just the thinking dot,
+compaction at ×0, and the details button. The HUD only ever shows data that
+belongs to the session in front of you — no counts carried over from other
+conversations:
+
+![New session HUD: thinking dot, compaction at ×0, details button](./screenshots/fresh-session.png)
+
 ### Realtime tool data — and the rest dim
 
 The strip is **live**: the per-tool counts are real session numbers that

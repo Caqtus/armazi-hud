@@ -1,0 +1,7 @@
+# armazi-hud bundle patch (the entry the dsh.bundle manifest points to).
+# Single package, single plugin: one row that mounts the client HUD into
+# the conversation dock. Applied over the profile's root config; later
+# layers (the profile's own cordis.patch.yml) can override this row by id.
+- insert:
+    - id: armazi-hud
+      name: armazi-hud

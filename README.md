@@ -18,26 +18,41 @@ By [Caqtus](https://github.com/Caqtus) · MIT · DSH 0.2.x (web platform)
 
 ## Install
 
-Armazi-hud is a regular DSH client plugin. Wire it into your profile:
+Armazi-hud ships as a DSH **bundle** (it declares `dsh.bundle` with a
+one-row patch file), so it installs and enables in one step — no manual
+profile editing needed.
 
-1. **`profiles/<name>/package.json`** — add the dependency (link for local dev):
+### Easiest: the GUI's Plugins page (one click)
 
-   ```json
-   "armazi-hud": "link:/path/to/armazi-hud"
-   ```
+1. In the DSH web sidebar, open **Plugins** → **Add plugin**.
+2. Enter one of:
+   - `armazi-hud` — the npm name (works once the package is published: `npm publish`)
+   - `https://github.com/Caqtus/armazi-hud` — the Git address (works once the repo is public/pushed)
+   - an absolute path to the tarball `armazi-hud-0.1.0.tgz` or a local clone
+3. Click **Install** and confirm. The bundle is **enabled automatically**.
+4. Reload the web page — the HUD strip appears in the conversation dock.
 
-   …or install from the published tarball / GitHub clone instead.
+### Command line
 
-2. **`profiles/<name>/cordis.patch.yml`** — add the plugin entry:
+```sh
+dsh plugin --profile <your-profile> add armazi-hud           # after npm publish
+dsh plugin --profile <your-profile> add https://github.com/Caqtus/armazi-hud
+dsh plugin --profile <your-profile> add /path/to/armazi-hud-0.1.0.tgz   # local tarball
+```
 
-   ```yaml
-   - insert:
-     - id: armazi-hud
-       name: armazi-hud
-       config:
-   ```
+That adds the package to your profile (a plain pnpm forward). Then flip the
+plugin's toggle on the **Plugins → Installed** sidebar page — that selects
+the bundle (`dsh.profile.bundles`) — and reload the page (restart DSH if
+hot reload is off).
 
-3. **Restart DSH** and reload the web GUI.
+### Manual wiring (no manager)
+
+1. Add the dependency in `profiles/<name>/package.json`
+   (e.g. `"armazi-hud": "0.1.0"`, or `link:/path/to/armazi-hud` for local dev).
+2. Select the bundle: add `"armazi-hud"` to `dsh.profile.bundles`.
+   (Equivalent: the one-row `insert` entry shown in the bundled
+   `cordis.patch.yml`.)
+3. Restart DSH and reload the web GUI.
 
 > The plugin declares `engines.dsh: "0.2.x"`. If your DSH version is not
 > accepted by the plugin-manager gate, ask the operator to grant a
@@ -58,7 +73,26 @@ browser required.
 
 - `lib/index.js` — host-side no-op entry (required by the plugin contract)
 - `lib/client.js` — the whole plugin: styles + render + dock mounting
+- `cordis.patch.yml` — the bundle config entry `dsh.bundle.patch` points to
 - `smoke.js` — headless render smoke test (12 cases)
+
+## Publish & discoverability
+
+- **npm** — `npm publish` (scope unscoped, name already `armazi-hud`).
+  After that, the npm name works in every install path above, and the
+  package is findable via npm search (keywords: `dsh`, `deepseek-harness`).
+- **GitHub** — push to [github.com/Caqtus](https://github.com/Caqtus) with
+  topics `dsh`, `dsh-plugin` (the topics of the upstream
+  `deepseek-ai/deepseek-harness` repo) — that is how the project's own
+  community tags plugins; the repo's Discussions are the natural place to
+  announce it.
+- **Discover tab** — DSH has an experimental Discover surface
+  (`plugin-market-bundle`, off by default) that lists plugins from
+  third-party JSON indexes (format 1). A ready-made index entry for this
+  package (validated against DSH's own `parseMarketIndex` rule set) lives
+  at [`../discover-index.example.json`](../discover-index.example.json);
+  any market index generator can include it, or you can host and point
+  DSH's `pluginMarket.indexes` config at your own.
 
 ## License
 

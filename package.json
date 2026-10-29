@@ -43,6 +43,7 @@
 		"cordis.patch.yml",
 		"smoke.js",
 		"cover.png",
+		"screenshots",
 		"README.md",
 		"LICENSE",
 		"package.json"

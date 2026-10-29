@@ -1,3 +1,5 @@
+![Armazi Hud](./cover.png)
+
 # armazi-hud
 
 Presentation-only status strip (HUD) for the DeepSeek Harness (DSH) web GUI.

@@ -1,0 +1,8 @@
+node_modules/
+*.tgz
+smoke-*.html
+dump-*.txt
+demo.stdout
+demo.stderr
+evidence-*.log
+backup/

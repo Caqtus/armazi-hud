@@ -96,25 +96,27 @@ byte-identical with or without it installed.
 
 ## Install
 
-Armazi-hud ships as a DSH **bundle**: it declares `dsh.bundle` with a
-one-row patch file, so one install step enables it — no manual profile
-wiring.
+Armazi-hud is **published on npm as `armazi-hud`** (zero dependencies, MIT)
+and also lives on **GitHub** (`Caqtus/armazi-hud`). It ships as a DSH
+**bundle** — a one-row patch file plus the `dsh.bundle` marker — so one
+install step enables it: no manual profile wiring.
 
-### Easiest — the GUI's Plugins page
+### Easiest — the GUI's Plugins page (npm)
 
 1. In the DSH web sidebar, open **Plugins** → **Add plugin**.
-2. Enter the npm name **`armazi-hud`** — or the Git address
-   **`https://github.com/Caqtus/armazi-hud`** — or an absolute path to a
-   local tarball / clone.
+2. Enter the npm name **`armazi-hud`** — DSH resolves and installs it from
+   the npm registry.
+   (Alternatively: the Git address **`https://github.com/Caqtus/armazi-hud`**
+   or an absolute path to a local tarball / clone.)
 3. Click **Install** and confirm — the bundle is **enabled automatically**.
 4. Reload the web page. The HUD strip appears above the message input.
 
 ### Command line
 
 ```sh
-dsh plugin add armazi-hud
-dsh plugin add https://github.com/Caqtus/armazi-hud
-dsh plugin add /path/to/armazi-hud-0.1.0.tgz   # local tarball
+dsh plugin add armazi-hud                             # from npm (published)
+dsh plugin add https://github.com/Caqtus/armazi-hud   # from GitHub
+dsh plugin add /path/to/armazi-hud-0.1.1.tgz          # local tarball
 ```
 
 Any of these installs and selects the bundle in one step; reload the GUI

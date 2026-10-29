@@ -24,6 +24,8 @@ reserved dock strip **right above the message input box**. It takes exactly
 one slot (`conversation.input.dock`), appears in every conversation, and
 removes itself cleanly when disabled. Nothing else in the interface changes.
 
+![The HUD in context — the strip right above the message input box, inside the conversation pane](./screenshots/where-it-lives.png)
+
 ## Screenshots
 
 ### The one-liner, at a glance

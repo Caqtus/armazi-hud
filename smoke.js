@@ -477,4 +477,3 @@ if (failures.length) {
 } else {
 	console.log("SMOKE OK (" + checkedCount + " cases)");
 }
-

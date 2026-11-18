@@ -99,34 +99,66 @@ byte-identical with or without it installed.
 Armazi-hud is **published on npm as `armazi-hud`** (zero dependencies, MIT)
 and also lives on **GitHub** (`Caqtus/armazi-hud`). It ships as a DSH
 **bundle** — a one-row patch file plus the `dsh.bundle` marker — so one
-install step enables it: no manual profile wiring.
+install step **selects and enables** it: no manual profile wiring.
 
 ### Easiest — the GUI's Plugins page (npm)
 
-1. In the DSH web sidebar, open **Plugins** → **Add plugin**.
-2. Enter the npm name **`armazi-hud`** — DSH resolves and installs it from
+1. Prerequisites: Node.js + npm, and DSH **0.2.x** with the web platform
+   (`dsh web`) — the plugin itself needs nothing else.
+2. In the DSH web sidebar, open **Plugins** → **Add plugin**.
+3. Enter the npm name **`armazi-hud`** — DSH resolves and installs it from
    the npm registry.
    (Alternatively: the Git address **`https://github.com/Caqtus/armazi-hud`**
    or an absolute path to a local tarball / clone.)
-3. Click **Install** and confirm — the bundle is **enabled automatically**.
-4. Reload the web page. The HUD strip appears above the message input.
+4. Click **Install** and confirm — the bundle is **selected and enabled
+   automatically**; the HUD is **on by default**.
+5. Reload the web page. The HUD strip appears above the message input.
+
+> **pnpm note:** adding, updating, or removing a bundle makes DSH spawn
+> `pnpm`. If your DSH runs in a container without pnpm, the install fails
+> with `spawn pnpm ENOENT` — install it once with
+> `docker exec -u root <container> npm i -g pnpm`.
+> **Turning the HUD on/off does NOT need pnpm** — only add/update/remove do.
 
 ### Command line
 
 ```sh
-npm install armazi-hud                                # one-step install, from npm (published)
+npm install armazi-hud                                # from npm (published)
 dsh plugin add armazi-hud                             # DSH-native equivalent (same package)
 dsh plugin add https://github.com/Caqtus/armazi-hud   # from GitHub
-dsh plugin add /path/to/armazi-hud-0.1.2.tgz          # local tarball
+dsh plugin add /path/to/armazi-hud-0.1.3.tgz          # local tarball
 ```
 
 Any of these installs and selects the bundle in one step; reload the GUI
 (restart DSH if hot reload is off) and the strip is live.
 
-> Requires DSH **0.2.x** with the web platform (`dsh web`). The plugin
-> declares `engines.dsh: "0.2.x"` — if your DSH build's plugin-manager gate
-> refuses, ask the operator for a version exemption for `armazi-hud`; the
-> plugin is presentation-only and holds nothing a DSH upgrade could break.
+> The plugin declares `engines.dsh: "0.2.x"` — if your DSH build's
+> plugin-manager gate refuses, ask the operator for a version exemption for
+> `armazi-hud`; the plugin is presentation-only and holds nothing a DSH
+> upgrade could break.
+
+## On / off — the two working switches
+
+Once installed, the HUD is **on by default**. You can turn it off — and back
+on — two ways, both from **Settings → Plugins**, no restart, no pnpm:
+
+1. **The card switch** (the big switch on the armazi-hud card) — the *bundle*
+   switch: **off** removes the HUD from the live composition entirely; **on**
+   restores it.
+2. **The row switch** (the small switch on the armazi-hud row under the card)
+   — the *component* switch: **off** stops the HUD while keeping it
+   installed; **on** re-enables it.
+
+Both switches were verified on a live DSH install, both directions: off
+stops the strip, on brings it back, and the profile stays clean in every
+state (no leftover state rows).
+
+> **No switch visible on the card or the row?** The GUI only renders
+> working switches for *selected* bundles. If a HUD install shows neither
+> switch — or the card switch silently does nothing — the bundle was wired
+> in without being selected (e.g. hand-added to a profile). Selecting the
+> bundle fixes both: that is exactly the "not responding to the plugin
+> on/off switch" issue documented in **0.1.3**.
 
 ## Under the hood
 
@@ -136,6 +168,23 @@ Any of these installs and selects the bundle in one step; reload the GUI
 - `smoke.js` — a 12-case headless render smoke test (`node smoke.js`)
 
 Pure CSS + DOM, no runtime dependencies, no network calls, no state written.
+
+## Changelog
+
+- **0.1.3** — **Fixed: armazi-hud not responding to the plugin on/off
+  switch.** Root cause: the GUI only renders working switches for *selected*
+  bundles — an unselected (hand-wired) install had a silent no-op card switch
+  and no row switch at all. 0.1.3 documents the working wiring (bundle
+  selected + on by default — the same arrangement as the reference
+  **dsh-pocket** bundle), both working switches (card = bundle, row =
+  component), and the pnpm caveat (add/update/remove only — not toggling).
+  Both switches verified live, both directions, no restart, clean profile in
+  every state. No code change from 0.1.2 — the fix is the documented,
+  verified wiring.
+- **0.1.2** — npm one-line install; version consistency across the package;
+  `latest` tag moved here.
+- **0.1.1 / 0.1.0** — first public npm release (16-file package, 12-case
+  smoke suite, MIT).
 
 ## License
 

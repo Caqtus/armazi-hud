@@ -202,9 +202,8 @@ MIT — see [LICENSE](./LICENSE).
 
 <!-- repo-stats:begin -->
 
-![clones](stats/badge.svg)
-
-- **43** clones (all-time)
+- **95** views (all-time)
+- **68** clones (all-time)
 
 [Full stats](stats/README.md)
 <!-- repo-stats:end -->

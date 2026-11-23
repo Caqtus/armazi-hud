@@ -18,9 +18,21 @@ jobs:
         run: |
           set -euo pipefail
           REPO="$GITHUB_REPOSITORY"
+          if [ -n "${GH_TOKEN:-}" ]; then
+            H=(-H "Authorization: Bearer $GH_TOKEN")
+          else
+            H=()
+          fi
           mkdir -p stats
-          curl -sS "https://api.github.com/repos/$REPO" -o stats/_repo.json
-          curl -sS "https://api.github.com/repos/$REPO/releases?per_page=100" -o stats/_rels.json
+          fetch() {
+            local url="$1" out="$2" code
+            code=$(curl -sS -w '%{http_code}' "${H[@]}" "$url" -o "$out")
+            if [ "$code" != "200" ]; then
+              echo "::error::GitHub API $url -> HTTP $code:"; cat "$out"; echo; exit 1
+            fi
+          }
+          fetch "https://api.github.com/repos/$REPO" stats/_repo.json
+          fetch "https://api.github.com/repos/$REPO/releases?per_page=100" stats/_rels.json
           if [ -n "${GH_TOKEN:-}" ]; then
             gh api "repos/$REPO/traffic/views?per=day" > stats/_v.json
             gh api "repos/$REPO/traffic/clones?per=day" > stats/_c.json
@@ -34,19 +46,26 @@ jobs:
         run: |
           python3 - <<'PY'
           import json, os, csv
-          r = json.load(open('stats/_repo.json'))
+
+          def load_j(p):
+              try: return json.load(open(p))
+              except Exception: return None
+
+          r = load_j('stats/_repo.json')
+          if not isinstance(r, dict) or 'stargazers_count' not in r:
+              raise SystemExit('Repo API response invalid (expect rate limit or API error): %r' % (r,))
           stars, forks = r['stargazers_count'], r['forks_count']
 
-          rels = json.load(open('stats/_rels.json'))
+          rels = load_j('stats/_rels.json')
           rels = rels if isinstance(rels, list) else []
           dl = [(x.get('tag_name') or 'unreleased', a['name'], int(a.get('download_count') or 0))
                 for x in rels for a in x.get('assets', [])]
           total_dl = sum(z for _, _, z in dl)
 
           def last_days(path, key):
-              try: d = json.load(open(path))
-              except Exception: return {}
-              if not isinstance(d, dict): return {}
+              d = load_j(path)
+              if not isinstance(d, dict) or key not in d:
+                  raise SystemExit(f'{path} has no "{key}" array — token or API error? payload: {d!r}')
               return {e['timestamp'][:10]: e for e in d.get(key, [])}
           v, c = last_days('stats/_v.json', 'views'), last_days('stats/_c.json', 'clones')
           new = {d0: [v.get(d0, {}).get('count', 0), v.get(d0, {}).get('uniques', 0),

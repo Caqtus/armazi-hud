@@ -124,8 +124,14 @@ install step **selects and enables** it: no manual profile wiring.
 
 ```sh
 npm install armazi-hud                                # from npm (published)
+```
+```sh
 dsh plugin add armazi-hud                             # DSH-native equivalent (same package)
+```
+```sh
 dsh plugin add https://github.com/Caqtus/armazi-hud   # from GitHub
+```
+```sh
 dsh plugin add /path/to/armazi-hud-0.1.3.tgz          # local tarball
 ```
 

@@ -1,0 +1,99 @@
+name: repo-stats
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch: {}
+permissions:
+  contents: write
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collect from GitHub APIs
+        env:
+          GH_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO="$GITHUB_REPOSITORY"
+          mkdir -p stats
+          curl -sS "https://api.github.com/repos/$REPO" -o stats/_repo.json
+          curl -sS "https://api.github.com/repos/$REPO/releases?per_page=100" -o stats/_rels.json
+          if [ -n "${GH_TOKEN:-}" ]; then
+            gh api "repos/$REPO/traffic/views?per=day"    -o stats/_v.json
+            gh api "repos/$REPO/traffic/clones?per=day"  -o stats/_c.json
+          else
+            echo '{"views":[]}'  > stats/_v.json
+            echo '{"clones":[]}' > stats/_c.json
+          fi
+
+      - name: Render stats files
+        run: |
+          python3 - <<'PY'
+          import json, os, csv
+          r = json.load(open('stats/_repo.json'))
+          stars, forks = r['stargazers_count'], r['forks_count']
+
+          rels = json.load(open('stats/_rels.json'))
+          rels = rels if isinstance(rels, list) else []
+          dl = [(x.get('tag_name') or 'unreleased', a['name'], int(a.get('download_count') or 0))
+                for x in rels for a in x.get('assets', [])]
+          total_dl = sum(z for _, _, z in dl)
+
+          def last_days(path, key):
+              try: d = json.load(open(path))
+              except Exception: return {}
+              if not isinstance(d, dict): return {}
+              return {e['timestamp'][:10]: e for e in d.get(key, [])}
+          v, c = last_days('stats/_v.json', 'views'), last_days('stats/_c.json', 'clones')
+          new = {d0: [v.get(d0, {}).get('count', 0), v.get(d0, {}).get('uniques', 0),
+                      c.get(d0, {}).get('count', 0), c.get(d0, {}).get('uniques', 0)]
+                 for d0 in set(v) | set(c)}
+
+          p = 'stats/daily.csv'; old = {}
+          if os.path.exists(p):
+              for ln in open(p).read().splitlines()[1:]:
+                  q = ln.split(',')
+                  if len(q) == 5: old[q[0]] = q[1:]
+          def vals(x): return [int(y) for y in x]
+          for d0, row in new.items():
+              if d0 not in old or vals(row) > vals(old[d0]): old[d0] = row
+          with open(p, 'w') as f:
+              f.write('date,views,unique_visitors,clones,unique_cloners\n')
+              for d0 in sorted(old):
+                  f.write(f'{d0},{old[d0][0]},{old[d0][1]},{old[d0][2]},{old[d0][3]}\n')
+
+          if dl:
+              with open('stats/downloads.csv', 'w') as f:
+                  w = csv.writer(f); w.writerow(['release', 'asset', 'total_downloads'])
+                  w.writerows(dl)
+          elif os.path.exists('stats/downloads.csv'):
+              pass
+
+          hist = [l.split(',') for l in open(p).read().splitlines()[1:]]
+          last = hist[-1][0] if hist else 'today'
+          out = ['# All-time stats', '',
+                 f'_Refreshed daily by GitHub Actions — last data: **{last}**._', '',
+                 '## Repo totals', '',
+                 f'- ⭐ Stars: **{stars}**',
+                 f'- 🍴 Forks: **{forks}**',
+                 f'- ⬇️ Total downloads (release files): **{total_dl}**', '']
+          if dl:
+              out += ['| release | file | downloads |', '|---|---|---|']
+              out += [f'| {a} | {b} | {c2} |' for a, b, c2 in dl]; out.append('')
+          out += ['## Daily activity (GitHub-reported unique viewers & cloners per day)', '',
+                  '| date | views | unique viewers | clones | unique cloners |', '|---|---|---|---|---|']
+          out += [f'| {q[0]} | {q[1]} | {q[2]} | {q[3]} | {q[4]} |' for q in reversed(hist)]
+          open('stats/README.md', 'w').write('\n'.join(out) + '\n')
+          PY
+
+      - name: Commit if changed
+        run: |
+          rm -f stats/_repo.json stats/_rels.json stats/_v.json stats/_c.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add stats
+          git diff --cached --quiet && echo "no changes" || git commit -m "stats: refresh $(date -u +%Y-%m-%d)"
+          git push

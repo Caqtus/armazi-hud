@@ -5,6 +5,7 @@
 
 - **95** views
 - **68** clones
+- **232** npm downloads
 
 [Full stats](stats/README.md)
 <!-- repo-stats:end -->

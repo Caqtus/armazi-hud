@@ -18,6 +18,8 @@ tools, zero dependencies, zero LLM cost.**
 
 By [Caqtus](https://github.com/Caqtus) · MIT · DSH 0.2.x (web platform)
 
+ეგაა. ეს სტრინგი სამუშაო სტრინგია და მალე წაიშლება
+
 ## What it does
 
 Armazi-hud gives you a constant, at-a-glance readout of what the session is

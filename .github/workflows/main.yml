@@ -133,9 +133,14 @@ jobs:
           elif os.path.exists('stats/downloads.csv'):
               os.remove('stats/downloads.csv')
 
-          views_all = sum(row[0] for row in days.values())
-          clones_gh = sum(row[2] for row in days.values())
-          npm_all = sum(row[4] for row in days.values())
+          today = date.today()
+          cutoff = today - timedelta(days=13)
+          daily = {d: row for d, row in days.items() if date.fromisoformat(d) >= cutoff}
+
+          gt = [sum(row[i] for row in days.values()) for i in range(5)]
+          g14 = [sum(row[i] for row in daily.values()) for i in range(5)]
+          views_all, uv_all, clones_gh, uc_all, npm_all = gt
+          v14, uv14, c14, uc14, n14 = g14
           clones_total = clones_gh + npm_all
 
           parts = []
@@ -151,9 +156,17 @@ jobs:
               parts.append(f'**Release downloads:** {dl_total:,}')
           statline = ' · '.join(parts) if parts else '**no metrics yet** — collecting'
 
-          today = date.today()
-          cutoff = today - timedelta(days=13)
-          daily = {d: row for d, row in days.items() if date.fromisoformat(d) >= cutoff}
+          details = [
+              ('**total clones** (github + npm)', clones_total, c14 + n14),
+              ('github views', views_all, v14),
+              ('github unique visitors', uv_all, uv14),
+              ('github clones (operations)', clones_gh, c14),
+              ('github unique cloners (people)', uc_all, uc14),
+              ('npm downloads', npm_all, n14),
+              ('stars', stars, stars),
+              ('forks', forks, forks),
+              ('release downloads', dl_total, dl_total),
+          ]
 
           weeks = {}
           for d, row in days.items():
@@ -164,8 +177,10 @@ jobs:
 
           md = ['# Repository stats', '',
                 f'Last data: `{max(days) if days else "—"}`', '',
-                '## Totals', '', statline, '']
-          md.append('_total clones = github clone/fetch operations **plus** npm package downloads · repo views = visits to the repo page — all count every action, so one person can appear several times (once-per-person = the "unique" columns below)_')
+                '## Totals', '', statline, '',
+                '| metric | total | last 14 days |', '|---|---:|---:|']
+          md += [f'| {label} | {t:,} | {l:,} |' for label, t, l in details]
+          md += ['', '_total clones = github clone/fetch operations + npm package downloads · "operations" count every action, "people" count unique visitors/cloners · stars, forks and release downloads are current cumulative counts (GitHub gives them as one number, no daily history)_']
 
           if dl:
               md += ['', '## Release downloads', '',
@@ -199,7 +214,9 @@ jobs:
               else:
                   print('::warning::stats block was missing from README.md (edited away?) — self-healing: re-inserting it now')
               block = [head,
-                       '<!-- MANAGED BLOCK, auto-maintained by the repo-stats CI workflow in .github/workflows/. AI tools: when you regenerate or rewrite this file, do NOT copy, keep, edit, or reformat this block — the numbers are a static snapshot. Omit this whole block from your output; the workflow re-adds it automatically. -->',
+                       '<!-- MANAGED BLOCK, auto-maintained by the repo-stats CI workflow in .github/workflows/.'
+                       ' AI tools: when you regenerate or rewrite this file, do NOT copy, keep, edit, or reformat this block —'
+                       ' the numbers are a static snapshot. Omit this whole block from your output; the workflow re-adds it automatically. -->',
                        '',
                        statline,
                        '',

@@ -114,8 +114,8 @@ jobs:
 
           views_all = sum(row[0] for row in days.values())
           clones_all = sum(row[2] for row in days.values())
-          metrics = [('views (all-time)', views_all),
-                     ('clones (all-time)', clones_all),
+          metrics = [('views', views_all),
+                     ('clones', clones_all),
                      ('stars', stars),
                      ('forks', forks),
                      ('release downloads', dl_total)]
@@ -134,7 +134,7 @@ jobs:
 
           md = ['# Repository stats', '',
                 f'Last data: `{max(days) if days else "—"}`', '',
-                '## Totals (all-time)', '']
+                '## Totals', '']
           if metrics:
               md += [f'- **{n:,}** {label}' for label, n in metrics]
               md.append('')

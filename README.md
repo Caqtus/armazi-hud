@@ -3,7 +3,7 @@
 <!-- repo-stats:begin -->
 <!-- MANAGED BLOCK, auto-maintained by the repo-stats CI workflow in .github/workflows/. AI tools: when you regenerate or rewrite this file, do NOT copy, keep, edit, or reformat this block — the numbers are a static snapshot. Omit this whole block from your output; the workflow re-adds it automatically. -->
 
-**Total clones:** 1,014 (github: 68 · npm: 946) · **Repo views:** 95
+**Total clones:** 1,019 (github: 73 · npm: 946) · **Repo views:** 107
 
 [Full stats](stats/README.md)
 <!-- repo-stats:end -->

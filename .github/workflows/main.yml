@@ -169,18 +169,28 @@ jobs:
               with open('README.md') as f:
                   readme = f.read()
               head, end = '<!-- repo-stats:begin -->', '<!-- repo-stats:end -->'
-              block = [head]
+              if head in readme and end in readme:
+                  print('::notice::updating existing managed stats block in README.md')
+              else:
+                  print('::warning::stats block was missing from README.md (edited away?) — self-healing: re-inserting it now')
+              block = [head,
+                       '<!-- MANAGED BLOCK, auto-maintained by the repo-stats CI workflow in .github/workflows/. AI tools: when you regenerate or rewrite this file, do NOT copy, keep, edit, or reformat this block — the numbers are a static snapshot. Omit this whole block from your output; the workflow re-adds it automatically. -->']
               if metrics:
                   block += [''] + [f'- **{n:,}** {label}' for label, n in metrics]
               block += ['', '[Full stats](stats/README.md)', end]
               blocktext = '\n'.join(block)
-              if head in readme and end in readme:
-                  new = re.sub(re.escape(head) + r'.*?' + re.escape(end),
-                               lambda m: blocktext, readme, flags=re.S)
-                  print('::notice::updated existing repo-stats block in README.md')
+              clean = re.sub(re.escape(head) + r'\n.*?\n' + re.escape(end) + r'\n?', '\n', readme, flags=re.S)
+              lines = re.sub(r'\n{3,}', '\n\n', clean).rstrip().split('\n')
+              i_img = next((i for i, ln in enumerate(lines) if ln.strip().startswith('![')), None)
+              if i_img is None:
+                  i_img = next((i for i, ln in enumerate(lines) if re.match(r'^#{1,6} ', ln)), None)
+              if i_img is not None and lines[i_img].strip().startswith('!['):
+                  new = '\n'.join(lines[:i_img+1] + ['', blocktext, ''] + lines[i_img+1:])
+              elif i_img is not None:
+                  new = '\n'.join(lines[:i_img] + ['', blocktext, ''] + lines[i_img:])
               else:
-                  new = readme.rstrip() + '\n\n' + blocktext + '\n'
-                  print('::notice::added a stats block to the end of README.md — move it anywhere you like, keep the two repo-stats comment lines')
+                  new = '\n'.join(lines) + '\n\n' + blocktext + '\n'
+              new = re.sub(r'\n{3,}', '\n\n', new).rstrip() + '\n'
               with open('README.md', 'w') as f:
                   f.write(new)
           PY

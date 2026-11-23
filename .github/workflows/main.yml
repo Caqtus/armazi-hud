@@ -17,13 +17,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Collect from GitHub APIs
+      - name: Collect from GitHub and npm APIs
         env:
           GH_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
           REPO="${{ github.repository }}"
+          NPM_PKG="armazi-hud"
           if [ -n "${GH_TOKEN:-}" ]; then
             H=(-H "Authorization: Bearer $GH_TOKEN")
           else
@@ -45,9 +46,18 @@ jobs:
             gh api "repos/$REPO/traffic/views?per=day" > stats/_v.json
             gh api "repos/$REPO/traffic/clones?per=day" > stats/_c.json
           else
-            echo "::warning::TRAFFIC_TOKEN secret not set — stars/forks/downloads still work, traffic stays empty"
+            echo "::warning::TRAFFIC_TOKEN secret not set — stars/forks/downloads + npm still work, traffic stays empty"
             echo '{"views":[]}' > stats/_v.json
             echo '{"clones":[]}' > stats/_c.json
+          fi
+          RANGE="$(date -u -d '-14 days' +%Y-%m-%d):$(date -u +%Y-%m-%d)"
+          code=$(curl -sS -w '%{http_code}' -H "Accept: application/json" "https://api.npmjs.org/downloads/range/$RANGE/$NPM_PKG" -o stats/_n.json || echo 000)
+          if [ "$code" = "404" ]; then
+            echo "::warning::npm package '$NPM_PKG' not found — npm column stays empty"
+            echo '{"downloads":[]}' > stats/_n.json
+          elif [ "$code" != "200" ]; then
+            echo "::warning::npm API returned HTTP $code — skipping npm data this run"
+            echo '{"downloads":[]}' > stats/_n.json
           fi
 
       - name: Render stats files
@@ -83,24 +93,35 @@ jobs:
           v = last_days('stats/_v.json', 'views')
           c = last_days('stats/_c.json', 'clones')
 
+          n = {}
+          nd = load_j('stats/_n.json')
+          if isinstance(nd, dict) and isinstance(nd.get('downloads'), list):
+              for e in nd['downloads']:
+                  if isinstance(e, dict) and 'day' in e:
+                      n[str(e['day'])[:10]] = int(e.get('downloads') or 0)
+
           old = {}
           if os.path.exists('stats/daily.csv'):
               with open('stats/daily.csv') as f:
                   for row in list(csv.reader(f))[1:]:
                       if len(row) >= 5 and row[0] != 'date':
-                          old[row[0]] = [int(x) for x in row[1:5]]
+                          old[row[0]] = ([int(row[1]), int(row[2]), int(row[3]), int(row[4]),
+                                        int(row[5])] if len(row) >= 6 else
+                                       [int(row[1]), int(row[2]), int(row[3]), int(row[4]), -1])
 
           days = {}
-          for d0 in sorted(set(old) | set(v) | set(c)):
-              new = [int(v.get(d0, {}).get('count', 0)),
-                     int(v.get(d0, {}).get('uniques', 0) or 0),
-                     int(c.get(d0, {}).get('count', 0)),
-                     int(c.get(d0, {}).get('uniques', 0) or 0)]
-              days[d0] = old[d0] if d0 in old and old[d0] > new else new
+          for d0 in sorted(set(old) | set(v) | set(c) | set(n)):
+              o = old.get(d0, [-1, -1, -1, -1, -1])
+              e = [int(v.get(d0, {}).get('count', 0)),
+                   int(v.get(d0, {}).get('uniques', 0) or 0),
+                   int(c.get(d0, {}).get('count', 0)),
+                   int(c.get(d0, {}).get('uniques', 0) or 0),
+                   int(n.get(d0, 0) or 0)]
+              days[d0] = [max(o[i], e[i]) for i in range(5)]
 
           with open('stats/daily.csv', 'w', newline='') as f:
               w = csv.writer(f)
-              w.writerow(['date', 'views', 'unique_visitors', 'clones', 'unique_cloners'])
+              w.writerow(['date', 'views', 'unique_visitors', 'clones', 'unique_cloners', 'npm_downloads'])
               for d0 in sorted(days):
                   w.writerow([d0] + days[d0])
 
@@ -114,8 +135,10 @@ jobs:
 
           views_all = sum(row[0] for row in days.values())
           clones_all = sum(row[2] for row in days.values())
+          npm_all = sum(row[4] for row in days.values())
           metrics = [('views', views_all),
                      ('clones', clones_all),
+                     ('npm downloads', npm_all),
                      ('stars', stars),
                      ('forks', forks),
                      ('release downloads', dl_total)]
@@ -128,8 +151,8 @@ jobs:
           weeks = {}
           for d, row in days.items():
               y, wk, _ = date.fromisoformat(d).isocalendar()
-              w = weeks.setdefault((y, wk), [0, 0, 0, 0, 0])
-              w[0] += 1; w[1] += row[0]; w[2] += row[1]; w[3] += row[2]; w[4] += row[3]
+              w = weeks.setdefault((y, wk), [0, 0, 0, 0, 0, 0])
+              w[0] += 1; w[1] += row[0]; w[2] += row[1]; w[3] += row[2]; w[4] += row[3]; w[5] += row[4]
           wk_sorted = sorted(weeks.items(), reverse=True)[:26]
 
           md = ['# Repository stats', '',
@@ -138,7 +161,7 @@ jobs:
           if metrics:
               md += [f'- **{n:,}** {label}' for label, n in metrics]
               md.append('')
-              md.append('_views = visits to the repo · clones = git clone/fetch operations; both count every action, so repeats by the same person are included too (once-per-person numbers are the "unique" columns below)_')
+              md.append('_views = visits to the repo page · clones = git clone/fetch operations · npm downloads = npm package installs; all count every action, so one person can appear multiple times (once-per-person = the "unique" columns)_')
           else:
               md.append('- _collecting — no non-zero metrics yet_')
 
@@ -148,16 +171,16 @@ jobs:
               md += [f'| {t} | {n} | {z:,} |' for t, n, z in dl]
 
           md += ['', '## Daily — last 14 days', '',
-                 '| date | views | unique visitors | clones | unique cloners |',
-                 '|---|---:|---:|---:|---:|']
-          md += [f'| {d} | {row[0]} | {row[1]} | {row[2]} | {row[3]} |'
+                 '| date | views | unique visitors | clones | unique cloners | npm downloads |',
+                 '|---|---:|---:|---:|---:|---:|']
+          md += [f'| {d} | {row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} |'
                  for d, row in sorted(daily.items(), reverse=True)]
 
           if wk_sorted:
               md += ['', '## Weekly — this week + up to 25 before', '',
-                     '| week of | days | views | unique visitors | clones | unique cloners |',
-                     '|---|---:|---:|---:|---:|---:|']
-              md += [f'| {date.fromisocalendar(y, wk, 1)} | {w[0]} | {w[1]} | {w[2]} | {w[3]} | {w[4]} |'
+                     '| week of | days | views | unique visitors | clones | unique cloners | npm downloads |',
+                     '|---|---:|---:|---:|---:|---:|---:|']
+              md += [f'| {date.fromisocalendar(y, wk, 1)} | {w[0]} | {w[1]} | {w[2]} | {w[3]} | {w[4]} | {w[5]} |'
                      for (y, wk), w in wk_sorted]
               md += ['', '_weekly rows sum the days of that week (this week is still in progress, so it grows as the week goes)_']
 
@@ -197,7 +220,7 @@ jobs:
 
       - name: Commit if changed
         run: |
-          rm -f stats/_repo.json stats/_rels.json stats/_v.json stats/_c.json
+          rm -f stats/_repo.json stats/_rels.json stats/_v.json stats/_c.json stats/_n.json
           git rm -f stats/badge.svg 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

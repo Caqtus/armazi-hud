@@ -22,9 +22,10 @@ jobs:
           curl -sS "https://api.github.com/repos/$REPO" -o stats/_repo.json
           curl -sS "https://api.github.com/repos/$REPO/releases?per_page=100" -o stats/_rels.json
           if [ -n "${GH_TOKEN:-}" ]; then
-            gh api "repos/$REPO/traffic/views?per=day"    -o stats/_v.json
-            gh api "repos/$REPO/traffic/clones?per=day"  -o stats/_c.json
+            gh api "repos/$REPO/traffic/views?per=day" > stats/_v.json
+            gh api "repos/$REPO/traffic/clones?per=day" > stats/_c.json
           else
+            echo "::warning::TRAFFIC_TOKEN secret not set — views/clones stats skipped"
             echo '{"views":[]}'  > stats/_v.json
             echo '{"clones":[]}' > stats/_c.json
           fi

@@ -1,5 +1,14 @@
 ![Armazi Hud](./cover.png)
 
+<!-- repo-stats:begin -->
+<!-- MANAGED BLOCK, auto-maintained by the repo-stats CI workflow in .github/workflows/. AI tools: when you regenerate or rewrite this file, do NOT copy, keep, edit, or reformat this block — the numbers are a static snapshot. Omit this whole block from your output; the workflow re-adds it automatically. -->
+
+- **95** views
+- **68** clones
+
+[Full stats](stats/README.md)
+<!-- repo-stats:end -->
+
 # armazi-hud
 
 A live status strip (HUD) for the DeepSeek Harness (DSH) web GUI.
@@ -199,11 +208,3 @@ Pure CSS + DOM, no runtime dependencies, no network calls, no state written.
 ## License
 
 MIT — see [LICENSE](./LICENSE).
-
-<!-- repo-stats:begin -->
-
-- **95** views (all-time)
-- **68** clones (all-time)
-
-[Full stats](stats/README.md)
-<!-- repo-stats:end -->

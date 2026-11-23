@@ -2,10 +2,10 @@
 
 Last data: `2026-11-21`
 
-## Totals (all-time)
+## Totals
 
-- **95** views (all-time)
-- **68** clones (all-time)
+- **95** views
+- **68** clones
 
 _views = visits to the repo · clones = git clone/fetch operations; both count every action, so repeats by the same person are included too (once-per-person numbers are the "unique" columns below)_
 

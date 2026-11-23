@@ -50,10 +50,10 @@ jobs:
             echo '{"views":[]}' > stats/_v.json
             echo '{"clones":[]}' > stats/_c.json
           fi
-          RANGE="$(date -u -d '-14 days' +%Y-%m-%d):$(date -u +%Y-%m-%d)"
+          RANGE="$(date -u -d '-90 days' +%Y-%m-%d):$(date -u +%Y-%m-%d)"
           code=$(curl -sS -w '%{http_code}' -H "Accept: application/json" "https://api.npmjs.org/downloads/range/$RANGE/$NPM_PKG" -o stats/_n.json || echo 000)
           if [ "$code" = "404" ]; then
-            echo "::warning::npm package '$NPM_PKG' not found — npm column stays empty"
+            echo "::warning::npm package '$NPM_PKG' not found — npm data stays empty"
             echo '{"downloads":[]}' > stats/_n.json
           elif [ "$code" != "200" ]; then
             echo "::warning::npm API returned HTTP $code — skipping npm data this run"
@@ -134,15 +134,22 @@ jobs:
               os.remove('stats/downloads.csv')
 
           views_all = sum(row[0] for row in days.values())
-          clones_all = sum(row[2] for row in days.values())
+          clones_gh = sum(row[2] for row in days.values())
           npm_all = sum(row[4] for row in days.values())
-          metrics = [('views', views_all),
-                     ('clones', clones_all),
-                     ('npm downloads', npm_all),
-                     ('stars', stars),
-                     ('forks', forks),
-                     ('release downloads', dl_total)]
-          metrics = [(label, n) for label, n in metrics if n > 0]
+          clones_total = clones_gh + npm_all
+
+          parts = []
+          if clones_total > 0:
+              parts.append(f'**Total clones:** {clones_total:,} (github: {clones_gh:,} · npm: {npm_all:,})')
+          if views_all > 0:
+              parts.append(f'**Repo views:** {views_all:,}')
+          if stars > 0:
+              parts.append(f'**Stars:** {stars:,}')
+          if forks > 0:
+              parts.append(f'**Forks:** {forks:,}')
+          if dl_total > 0:
+              parts.append(f'**Release downloads:** {dl_total:,}')
+          statline = ' · '.join(parts) if parts else '**no metrics yet** — collecting'
 
           today = date.today()
           cutoff = today - timedelta(days=13)
@@ -157,13 +164,8 @@ jobs:
 
           md = ['# Repository stats', '',
                 f'Last data: `{max(days) if days else "—"}`', '',
-                '## Totals', '']
-          if metrics:
-              md += [f'- **{n:,}** {label}' for label, n in metrics]
-              md.append('')
-              md.append('_views = visits to the repo page · clones = git clone/fetch operations · npm downloads = npm package installs; all count every action, so one person can appear multiple times (once-per-person = the "unique" columns)_')
-          else:
-              md.append('- _collecting — no non-zero metrics yet_')
+                '## Totals', '', statline, '']
+          md.append('_total clones = github clone/fetch operations **plus** npm package downloads · repo views = visits to the repo page — all count every action, so one person can appear several times (once-per-person = the "unique" columns below)_')
 
           if dl:
               md += ['', '## Release downloads', '',
@@ -197,10 +199,12 @@ jobs:
               else:
                   print('::warning::stats block was missing from README.md (edited away?) — self-healing: re-inserting it now')
               block = [head,
-                       '<!-- MANAGED BLOCK, auto-maintained by the repo-stats CI workflow in .github/workflows/. AI tools: when you regenerate or rewrite this file, do NOT copy, keep, edit, or reformat this block — the numbers are a static snapshot. Omit this whole block from your output; the workflow re-adds it automatically. -->']
-              if metrics:
-                  block += [''] + [f'- **{n:,}** {label}' for label, n in metrics]
-              block += ['', '[Full stats](stats/README.md)', end]
+                       '<!-- MANAGED BLOCK, auto-maintained by the repo-stats CI workflow in .github/workflows/. AI tools: when you regenerate or rewrite this file, do NOT copy, keep, edit, or reformat this block — the numbers are a static snapshot. Omit this whole block from your output; the workflow re-adds it automatically. -->',
+                       '',
+                       statline,
+                       '',
+                       '[Full stats](stats/README.md)',
+                       end]
               blocktext = '\n'.join(block)
               clean = re.sub(re.escape(head) + r'\n.*?\n' + re.escape(end) + r'\n?', '\n', readme, flags=re.S)
               lines = re.sub(r'\n{3,}', '\n\n', clean).rstrip().split('\n')

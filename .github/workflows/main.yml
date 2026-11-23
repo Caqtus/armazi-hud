@@ -5,6 +5,9 @@ on:
     - cron: "0 20 * * *"
   workflow_dispatch: {}
 
+concurrency:
+  group: repo-stats
+
 permissions:
   contents: write
 
@@ -118,22 +121,6 @@ jobs:
                      ('release downloads', dl_total)]
           metrics = [(label, n) for label, n in metrics if n > 0]
 
-          if clones_all > 0:
-              val = f'{clones_all:,}'
-              total_w = 74 + len(val) * 8
-              val_w = total_w - 72
-              cx = 72 + val_w / 2
-              svg = (
-                  f'<svg xmlns="http://www.w3.org/2000/svg" width="{total_w}" height="20">'
-                  '<rect width="72" height="20" fill="#555555"/>'
-                  f'<rect x="72" width="{val_w}" height="20" fill="#4c1"/>'
-                  '<text x="36" y="14" font-family="Verdana,sans-serif" font-size="11" fill="#fff" text-anchor="middle">clones</text>'
-                  f'<text x="{cx:.0f}" y="14" font-family="Verdana,sans-serif" font-size="11" fill="#fff" text-anchor="middle">{val}</text>'
-                  '</svg>'
-              )
-              with open('stats/badge.svg', 'w') as f:
-                  f.write(svg)
-
           today = date.today()
           cutoff = today - timedelta(days=13)
           daily = {d: row for d, row in days.items() if date.fromisoformat(d) >= cutoff}
@@ -183,8 +170,6 @@ jobs:
                   readme = f.read()
               head, end = '<!-- repo-stats:begin -->', '<!-- repo-stats:end -->'
               block = [head]
-              if clones_all > 0:
-                  block += ['', '![clones](stats/badge.svg)']
               if metrics:
                   block += [''] + [f'- **{n:,}** {label}' for label, n in metrics]
               block += ['', '[Full stats](stats/README.md)', end]
@@ -203,6 +188,7 @@ jobs:
       - name: Commit if changed
         run: |
           rm -f stats/_repo.json stats/_rels.json stats/_v.json stats/_c.json
+          git rm -f stats/badge.svg 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add stats
@@ -211,5 +197,6 @@ jobs:
             echo "no changes"
           else
             git commit -m "stats: refresh $(date -u +%Y-%m-%d)"
+            git pull --rebase
             git push
           fi

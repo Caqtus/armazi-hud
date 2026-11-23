@@ -199,3 +199,12 @@ Pure CSS + DOM, no runtime dependencies, no network calls, no state written.
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
+<!-- repo-stats:begin -->
+
+![clones](stats/badge.svg)
+
+- **43** clones (all-time)
+
+[Full stats](stats/README.md)
+<!-- repo-stats:end -->

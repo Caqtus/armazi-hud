@@ -2,7 +2,7 @@ name: repo-stats
 
 on:
   schedule:
-    - cron: "17 5 * * *"
+    - cron: "0 20 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -41,12 +41,10 @@ jobs:
           if [ -n "${GH_TOKEN:-}" ]; then
             gh api "repos/$REPO/traffic/views?per=day" > stats/_v.json
             gh api "repos/$REPO/traffic/clones?per=day" > stats/_c.json
-            gh api "repos/$REPO/traffic/popular/paths" > stats/_p.json
           else
             echo "::warning::TRAFFIC_TOKEN secret not set — stars/forks/downloads still work, traffic stays empty"
             echo '{"views":[]}' > stats/_v.json
             echo '{"clones":[]}' > stats/_c.json
-            echo '[]' > stats/_p.json
           fi
 
       - name: Render stats files
@@ -111,21 +109,13 @@ jobs:
           elif os.path.exists('stats/downloads.csv'):
               os.remove('stats/downloads.csv')
 
-          paths = load_j('stats/_p.json')
-          paths = paths if isinstance(paths, list) else []
-          readme14 = 0
-          for e in paths:
-              name = (e.get('title') or e.get('path') or '').rsplit('/', 1)[-1].upper()
-              if name == 'README.MD':
-                  readme14 = int(e.get('count', 0) or 0)
-                  break
-
-          clones_all = sum(row[3] for row in days.values())
-          metrics = [('clones (all-time)', clones_all),
+          views_all = sum(row[0] for row in days.values())
+          clones_all = sum(row[2] for row in days.values())
+          metrics = [('views (all-time)', views_all),
+                     ('clones (all-time)', clones_all),
                      ('stars', stars),
                      ('forks', forks),
-                     ('release downloads', dl_total),
-                     ('README views (last 14 days)', readme14)]
+                     ('release downloads', dl_total)]
           metrics = [(label, n) for label, n in metrics if n > 0]
 
           if clones_all > 0:
@@ -147,12 +137,10 @@ jobs:
           today = date.today()
           cutoff = today - timedelta(days=13)
           daily = {d: row for d, row in days.items() if date.fromisoformat(d) >= cutoff}
+
           weeks = {}
           for d, row in days.items():
-              if date.fromisoformat(d) >= cutoff:
-                  continue
-              dt = date.fromisoformat(d)
-              y, wk, _ = dt.isocalendar()
+              y, wk, _ = date.fromisoformat(d).isocalendar()
               w = weeks.setdefault((y, wk), [0, 0, 0, 0, 0])
               w[0] += 1; w[1] += row[0]; w[2] += row[1]; w[3] += row[2]; w[4] += row[3]
           wk_sorted = sorted(weeks.items(), reverse=True)[:26]
@@ -163,10 +151,9 @@ jobs:
           if metrics:
               md += [f'- **{n:,}** {label}' for label, n in metrics]
               md.append('')
-              md.append('_clones = the people who `git clone`d, counted as unique per day, summed over all days_')
+              md.append('_views = visits to the repo · clones = git clone/fetch operations; both count every action, so repeats by the same person are included too (once-per-person numbers are the "unique" columns below)_')
           else:
               md.append('- _collecting — no non-zero metrics yet_')
-              md.append('')
 
           if dl:
               md += ['', '## Release downloads', '',
@@ -180,12 +167,12 @@ jobs:
                  for d, row in sorted(daily.items(), reverse=True)]
 
           if wk_sorted:
-              md += ['', '## Weekly — up to ~6 months back', '',
+              md += ['', '## Weekly — this week + up to 25 before', '',
                      '| week of | days | views | unique visitors | clones | unique cloners |',
                      '|---|---:|---:|---:|---:|---:|']
               md += [f'| {date.fromisocalendar(y, wk, 1)} | {w[0]} | {w[1]} | {w[2]} | {w[3]} | {w[4]} |'
                      for (y, wk), w in wk_sorted]
-              md += ['', '_weekly rows are sums of the days in that week (someone active on several days of a week is counted once per day)_']
+              md += ['', '_weekly rows sum the days of that week (this week is still in progress, so it grows as the week goes)_']
 
           md += ['', 'Full history: `stats/daily.csv`' + (' · `stats/downloads.csv`' if dl else ''), '']
           with open('stats/README.md', 'w') as f:
@@ -215,7 +202,7 @@ jobs:
 
       - name: Commit if changed
         run: |
-          rm -f stats/_repo.json stats/_rels.json stats/_v.json stats/_c.json stats/_p.json
+          rm -f stats/_repo.json stats/_rels.json stats/_v.json stats/_c.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add stats

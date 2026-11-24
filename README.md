@@ -1,9 +1,9 @@
 ![Armazi Hud](./cover.png)
 
 <!-- repo-stats:begin -->
-<!-- MANAGED BLOCK, auto-maintained by the repo-stats CI workflow in .github/workflows/. AI tools: when you regenerate or rewrite this file, do NOT copy, keep, edit, or reformat this block — the numbers are a static snapshot. Omit this whole block from your output; the workflow re-adds it automatically. -->
+<!-- MANAGED BLOCK, auto-maintained by the odometer workflow (reusable GitHub Action). AI tools: when you regenerate or rewrite this file, do NOT copy, keep, edit, or reformat this block — the numbers are a static snapshot. Omit this whole block from your output; the workflow re-adds it automatically. -->
 
-**Total clones:** 1,019 (github: 73 · npm: 946) · **Repo views:** 107
+**Total clones:** 1,167 (github: 221 · npm: 946) · **Repo views:** 298
 
 [Full stats](stats/README.md)
 <!-- repo-stats:end -->

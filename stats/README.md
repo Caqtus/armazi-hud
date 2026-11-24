@@ -1,19 +1,19 @@
 # Repository stats
 
-Last data: `2026-11-23`
+Last data: `2026-11-24`
 
 ## Totals
 
-**Total clones:** 1,019 (github: 73 · npm: 946) · **Repo views:** 107
+**Total clones:** 1,167 (github: 221 · npm: 946) · **Repo views:** 298
 
 | metric | total | last 14 days |
 |---|---:|---:|
-| **total clones** (github + npm) | 1,019 | 293 |
-| github views | 107 | 107 |
-| github unique visitors | 34 | 34 |
-| github clones (operations) | 73 | 69 |
-| github unique cloners (people) | 45 | 43 |
-| npm downloads | 946 | 224 |
+| **total clones** (github + npm) | 1,167 | 434 |
+| github views | 298 | 298 |
+| github unique visitors | 36 | 36 |
+| github clones (operations) | 221 | 215 |
+| github unique cloners (people) | 103 | 100 |
+| npm downloads | 946 | 219 |
 | stars | 0 | 0 |
 | forks | 0 | 0 |
 | release downloads | 0 | 0 |
@@ -24,7 +24,8 @@ _total clones = github clone/fetch operations + npm package downloads · "operat
 
 | date | views | unique visitors | clones | unique cloners | npm downloads |
 |---|---:|---:|---:|---:|---:|
-| 2026-11-23 | 0 | 0 | 0 | 0 | 0 |
+| 2026-11-24 | 0 | 0 | 0 | 0 | 0 |
+| 2026-11-23 | 191 | 2 | 148 | 58 | 0 |
 | 2026-11-22 | 12 | 2 | 5 | 2 | 5 |
 | 2026-11-21 | 4 | 1 | 4 | 3 | 3 |
 | 2026-11-20 | 9 | 6 | 3 | 2 | 9 |
@@ -37,13 +38,12 @@ _total clones = github clone/fetch operations + npm package downloads · "operat
 | 2026-11-13 | 0 | 0 | 5 | 4 | 3 |
 | 2026-11-12 | 0 | 0 | 2 | 1 | 1 |
 | 2026-11-11 | 0 | 0 | 4 | 3 | 8 |
-| 2026-11-10 | 0 | 0 | 2 | 1 | 5 |
 
 ## Weekly — this week + up to 25 before
 
 | week of | days | views | unique visitors | clones | unique cloners | npm downloads |
 |---|---:|---:|---:|---:|---:|---:|
-| 2026-11-23 | 1 | 0 | 0 | 0 | 0 | 0 |
+| 2026-11-23 | 2 | 191 | 2 | 148 | 58 | 0 |
 | 2026-11-16 | 7 | 107 | 34 | 49 | 30 | 206 |
 | 2026-11-09 | 7 | 0 | 0 | 22 | 14 | 26 |
 | 2026-11-02 | 7 | 0 | 0 | 2 | 1 | 60 |
@@ -60,4 +60,4 @@ _total clones = github clone/fetch operations + npm package downloads · "operat
 
 _weekly rows sum the days of that week (this week is still in progress, so it grows as the week goes)_
 
-Full history: `stats/daily.csv`
+Full history: `stats/daily.csv` (one row per day since the first run) · workflow: `odometer.yml`

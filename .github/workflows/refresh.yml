@@ -1,0 +1,13 @@
+name: odometer
+on:
+  schedule:
+    - cron: "0 20 * * *"   # 20:00 UTC = 00:00 (midnight) Georgian time (UTC+4); change the hour for another time
+  workflow_dispatch: {}    # gives you a "Run workflow" button
+jobs:
+  refresh:
+    permissions:
+      contents: write       # lets the run token commit the stats back — do not remove
+    uses: Caqtus/odometer/.github/workflows/odometer.yml@v1
+    with:
+      npm_package: "armazi-hud"
+    secrets: inherit

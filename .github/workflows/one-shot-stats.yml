@@ -1,0 +1,12 @@
+name: odometer-one-shot
+on:
+  push:
+    branches: [main]
+jobs:
+  refresh:
+    permissions:
+      contents: write       # lets the run token commit the stats back — do not remove
+    uses: Caqtus/odometer/.github/workflows/odometer.yml@v1
+    with:
+      npm_package: "armazi-hud"
+    secrets: inherit

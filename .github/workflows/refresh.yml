@@ -1,7 +1,7 @@
 name: odometer
 on:
   schedule:
-    - cron: "0 20 * * *"   # 20:00 UTC = 00:00 (midnight) Georgian time (UTC+4); change the hour for another time
+    - cron: "0 12,20 * * *"   # 12:00+20:00 UTC = 16:00+24:00 Georgian (UTC+4): GitHub publishes traffic ~15-18h after a day ends, so the 16:00 run captures yesterday
   workflow_dispatch: {}    # gives you a "Run workflow" button
 jobs:
   refresh:

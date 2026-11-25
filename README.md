@@ -3,7 +3,7 @@
 <!-- repo-stats:begin -->
 <!-- MANAGED BLOCK, auto-maintained by the odometer workflow (reusable GitHub Action). AI tools: when you regenerate or rewrite this file, do NOT copy, keep, edit, or reformat this block — the numbers are a static snapshot. Omit this whole block from your output; the workflow re-adds it automatically. -->
 
-**Total clones:** 1,167 (github: 221 · npm: 946) · **Repo views:** 298
+**Total clones:** 1,286 (github: 335 · npm: 951) · **Repo views:** 334
 
 [Full stats](stats/README.md)
 <!-- repo-stats:end -->

@@ -1,6 +1,6 @@
 # Repository stats
 
-Last data: `2026-11-25`
+Last data: `2026-11-26`
 
 ## Totals
 
@@ -8,12 +8,12 @@ Last data: `2026-11-25`
 
 | metric | total | last 14 days |
 |---|---:|---:|
-| **total clones** (github + npm) | 1,286 | 541 |
+| **total clones** (github + npm) | 1,286 | 538 |
 | github views | 334 | 334 |
 | github unique visitors | 38 | 38 |
-| github clones (operations) | 335 | 325 |
-| github unique cloners (people) | 150 | 144 |
-| npm downloads | 951 | 216 |
+| github clones (operations) | 335 | 323 |
+| github unique cloners (people) | 150 | 143 |
+| npm downloads | 951 | 215 |
 | stars | 0 | 0 |
 | forks | 0 | 0 |
 | release downloads | 0 | 0 |
@@ -24,6 +24,7 @@ _total clones = github clone/fetch operations + npm package downloads · "operat
 
 | date | views | unique visitors | clones | unique cloners | npm downloads |
 |---|---:|---:|---:|---:|---:|
+| 2026-11-26 | 0 | 0 | 0 | 0 | 0 |
 | 2026-11-25 | 0 | 0 | 0 | 0 | 0 |
 | 2026-11-24 | 36 | 2 | 114 | 47 | 5 |
 | 2026-11-23 | 191 | 2 | 148 | 58 | 0 |
@@ -37,13 +38,12 @@ _total clones = github clone/fetch operations + npm package downloads · "operat
 | 2026-11-15 | 0 | 0 | 5 | 3 | 1 |
 | 2026-11-14 | 0 | 0 | 2 | 1 | 0 |
 | 2026-11-13 | 0 | 0 | 5 | 4 | 3 |
-| 2026-11-12 | 0 | 0 | 2 | 1 | 1 |
 
 ## Weekly — this week + up to 25 before
 
 | week of | days | views | unique visitors | clones | unique cloners | npm downloads |
 |---|---:|---:|---:|---:|---:|---:|
-| 2026-11-23 | 3 | 227 | 4 | 262 | 105 | 5 |
+| 2026-11-23 | 4 | 227 | 4 | 262 | 105 | 5 |
 | 2026-11-16 | 7 | 107 | 34 | 49 | 30 | 206 |
 | 2026-11-09 | 7 | 0 | 0 | 22 | 14 | 26 |
 | 2026-11-02 | 7 | 0 | 0 | 2 | 1 | 60 |
